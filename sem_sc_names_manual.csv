@@ -1,0 +1,12 @@
+sc_id,sc_name,sc_name_short
+1,Rural-Urban Classification and County Geography,Rural-Urban Geography
+2,Race and Ethnicity Demographics,Race and Ethnicity
+3,Socioeconomic Deprivation and Health Insurance,Socioeconomic Deprivation
+4,Labor Force and Employment,Labor Force
+5,Household and Family Structure,Household Structure
+6,Mortality and Birth Outcomes,Mortality and Birth
+7,Hospital Infrastructure and Capacity,Hospital Infrastructure
+8,Healthcare Staffing and Allied Health,Healthcare Staffing
+9,Primary Care and Medicare Workforce,Primary Care and Medicare
+10,Specialist Physician Workforce,Specialist Physicians
+11,Surgical and Procedural Specialties,Surgical Specialties

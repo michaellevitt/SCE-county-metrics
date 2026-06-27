@@ -1,0 +1,22 @@
+# Python dependencies for the SCE US-County pipeline.
+# Tested with Python 3.13 (Homebrew). The system /usr/bin/python3 (3.9) on
+# macOS may ship a broken numpy -- use a clean Python 3.11+ environment.
+#
+#   python3 -m venv .venv && . .venv/bin/activate
+#   pip install -r requirements.txt
+
+# ---- core: needed by BOTH pipelines (tables + figures + CC) ----
+numpy>=2.0
+pandas>=2.0
+scipy>=1.11
+scikit-learn>=1.3
+matplotlib>=3.8
+openpyxl>=3.1
+requests>=2.31            # generate_cluster_labels.py -> Claude API (needs ANTHROPIC_API_KEY)
+
+# ---- from-raw clustering only (semantic_cluster_metrics_v2.py) ----
+# Heavy; NOT needed for run_standard_k120_w1.0.sh, which reuses the
+# pre-built clustering in ward_sem_clean2_k120/.
+sentence-transformers>=2.2
+torch>=2.0
+umap-learn>=0.5
