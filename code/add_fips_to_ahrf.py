@@ -37,6 +37,12 @@ def main():
             raise SystemExit(f"ERROR: expected AHRF column {col} not found in {args.inp}")
 
     fips = df["f00011"].str.strip().str.zfill(2) + df["f00012"].str.strip().str.zfill(3)
+
+    # f00002 is the raw 5-digit FIPS code -- redundant with the named `fips`
+    # column below, and the original AHRF2020.fips.csv dropped it. Drop it so a
+    # fresh build matches (otherwise it would survive as an extra predictor).
+    df = df.drop(columns=["f00002"], errors="ignore")
+
     df.insert(1, "fips", fips)            # second column, matching the original layout
 
     df.to_csv(args.out, index=False)
