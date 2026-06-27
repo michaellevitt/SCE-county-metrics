@@ -93,8 +93,8 @@ code/                          pipeline scripts + orchestrators
   _workbook_style.py           shared helper (Excel styling)
   *.py                         the ~25 analysis steps invoked by the above
 data/
-  raw/                         8 source files assembled by Step 01
-                               (incl. AHRF2020.fips.csv; *.names = AHRF column dictionaries)
+  raw/                         source files assembled by Step 01 (AHRF2020.fips.csv
+                               NOT included — supply it per §7; *.names = AHRF column dictionaries)
   raw/census_pop/              county population by year + metric-year map (own-year normalization)
   BEN_..._explain_extended_2745.csv   variable descriptions
 ward_sem_clean2_k120/          CURATED 120-cluster semantic clustering (fixed input)
@@ -157,18 +157,40 @@ only derived statistics and brief excerpts may be shared. Accordingly:
 - **Not included** (raw data): `data/raw/AHRF2020.fips.csv`.
 
 `run_standard_k120_w1.0.sh` reproduces all tables and figures **without** it (it
-reads the derived `full_w1.0/` files). To run the *from-raw* pipeline, obtain
-AHRF yourself:
+reads the derived `full_w1.0/` files). To run the *from-raw* pipeline you must
+obtain AHRF yourself and convert it to `data/raw/AHRF2020.fips.csv`:
 
-1. Download the AHRF county file from HRSA: https://data.hrsa.gov/topics/health-workforce/ahrf
-   (you must accept HRSA's Data Use Agreement).
-2. Produce `data/raw/AHRF2020.fips.csv` in the same column layout used here (the
-   `*.names` files document the expected f-code columns).
-3. Then `sh code/run_all.sh` will run end-to-end.
+1. Go to **https://data.hrsa.gov/data/download** and find the AHRF section
+   (registration required). Releases are listed by year-pair; this analysis uses
+   the **2019–2020** release (that is the "2020" in `AHRF2020.fips.csv`).
 
-**Citation:** Area Health Resources Files (AHRF). US Department of Health and
-Human Services, Health Resources and Services Administration, Bureau of Health
-Workforce, Rockville, MD.
+2. Download the **2019–2020 SAS** file (~27 MB). That release is offered only as
+   ASCII or SAS — there is **no CSV** for it (HRSA added CSV only from 2022–2023
+   on) — and the SAS format is the one our converter reads. Unzip it to get the
+   `.sas7bdat` file.
+
+3. Convert SAS → CSV (needs `pip install pyreadstat`):
+
+   ```sh
+   python code/AHRF_SAS7BDAT_to_CSV.v2.2_progress.py \
+       --sas AHRF_2019-2020.sas7bdat --out /tmp/ahrf_raw.csv
+   ```
+
+4. Add the 5-digit county `fips` key in the layout the pipeline expects:
+
+   ```sh
+   python code/add_fips_to_ahrf.py --in /tmp/ahrf_raw.csv \
+       --out data/raw/AHRF2020.fips.csv
+   ```
+   (`fips` = AHRF `f00011` state code + `f00012` county code; see the script.)
+
+5. Now `sh code/run_all.sh` runs end-to-end. The `data/raw/AHRF2020.fips.csv.names`
+   and `*.f-metrics.names` files document the expected f-code columns if you need
+   to cross-check the layout.
+
+**Citation:** Area Health Resources Files (AHRF) 2019–2020. US Department of
+Health and Human Services, Health Resources and Services Administration, Bureau
+of Health Workforce, Rockville, MD.
 
 ## 8. Other data sources
 

@@ -20,3 +20,7 @@ requests>=2.31            # generate_cluster_labels.py -> Claude API (needs ANTH
 sentence-transformers>=2.2
 torch>=2.0
 umap-learn>=0.5
+
+# ---- AHRF conversion only (code/AHRF_SAS7BDAT_to_CSV...py) ----
+# Needed only to convert a HRSA AHRF .sas7bdat download to CSV (see README §7).
+pyreadstat>=1.2
