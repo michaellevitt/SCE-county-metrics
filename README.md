@@ -164,16 +164,16 @@ obtain AHRF yourself and convert it to `data/raw/AHRF2020.fips.csv`:
    (registration required). Releases are listed by year-pair; this analysis uses
    the **2019–2020** release (that is the "2020" in `AHRF2020.fips.csv`).
 
-2. Download the **2019–2020 SAS** file (~27 MB). That release is offered only as
-   ASCII or SAS — there is **no CSV** for it (HRSA added CSV only from 2022–2023
-   on) — and the SAS format is the one our converter reads. Unzip it to get the
-   `.sas7bdat` file.
+2. Download the **2019–2020 SAS** release (`AHRF_2019-2020_SAS.zip`). That
+   release is offered only as ASCII or SAS — there is **no CSV** for it (HRSA
+   added CSV only from 2022–2023 on) — and the SAS format is the one our
+   converter reads. Unzip it to get `ahrf2020.sas7bdat`.
 
 3. Convert SAS → CSV (needs `pip install pyreadstat`):
 
    ```sh
    python code/AHRF_SAS7BDAT_to_CSV.v2.2_progress.py \
-       --sas AHRF_2019-2020.sas7bdat --out /tmp/ahrf_raw.csv
+       --sas ahrf2020.sas7bdat --out /tmp/ahrf_raw.csv
    ```
 
 4. Add the 5-digit county `fips` key in the layout the pipeline expects:
@@ -182,7 +182,12 @@ obtain AHRF yourself and convert it to `data/raw/AHRF2020.fips.csv`:
    python code/add_fips_to_ahrf.py --in /tmp/ahrf_raw.csv \
        --out data/raw/AHRF2020.fips.csv
    ```
-   (`fips` = AHRF `f00011` state code + `f00012` county code; see the script.)
+   (`fips` = AHRF `f00011` state code + `f00012` county code; the script also
+   drops the redundant raw-FIPS column `f00002`, matching the original layout.)
+
+This recipe is **verified**: a fresh 2019–2020 SAS download run through these two
+steps reproduces the AHRF column layout used here exactly (3,230 counties ×
+7,237 columns, 0 value differences).
 
 5. Now `sh code/run_all.sh` runs end-to-end. The `data/raw/AHRF2020.fips.csv.names`
    and `*.f-metrics.names` files document the expected f-code columns if you need
