@@ -176,3 +176,10 @@ Ancillary predictors include CDC/ATSDR SVI, Census county poverty, urban-area
 crosswalks, and CDC vaccination summaries (all in `data/raw/`, public-domain
 sources). Excess-death measures are county-level COVID-era mortality derived by
 the authors.
+
+## 9. License
+
+Code and the authors' own derived outputs in this repository are released under
+the **MIT License** (see `LICENSE`). This does not extend to third-party data:
+AHRF is not included (HRSA Data Use Agreement, §7), and the bundled CDC/Census
+source files remain under their respective public-domain / agency terms.

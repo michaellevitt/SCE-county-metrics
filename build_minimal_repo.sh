@@ -95,7 +95,7 @@ say "--- 4. prune root ---"
 KEEP_ROOT="code data ward_sem_clean2_k120 full_w1.0 \
 hub_members_extensive_intensive.csv sem_sc_assignments_manual.csv \
 sem_sc_names_manual.csv embeddings_mpnet_2745.npy \
-.gitignore .gitattributes README.md requirements.txt build_minimal_repo.sh \
+.gitignore .gitattributes README.md LICENSE requirements.txt build_minimal_repo.sh \
 .git . .."
 for p in * .[!.]*; do
   [ -e "$p" ] || continue
