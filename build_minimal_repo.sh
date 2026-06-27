@@ -51,7 +51,8 @@ done
 # 2. PRUNE code/  -- keep only the 28 scripts used by the two pipelines
 # ---------------------------------------------------------------------------
 say "--- 2. prune code/ ---"
-KEEP_CODE="run_all.sh clean_all.sh run_standard_k120_w1.0.sh 0000_Run_USCounty-v10.1.sh derive_w1.0_cc.sh _workbook_style.py \
+KEEP_CODE="run_all.sh clean_all.sh run_standard_k120_w1.0.sh 0000_Run_USCounty-v10.1.sh derive_w1.0_cc.sh \
+AHRF_SAS7BDAT_to_CSV.v2.2_progress.py add_fips_to_ahrf.py _workbook_style.py \
 00_assemble_merged_BEN_file_v7.py normalize_extensive_metrics_v3.py \
 semantic_cluster_metrics_v2.py cluster_labels_to_superclusters.py \
 generate_cluster_labels.py calc_metric_death_cc_v4.py compute_sem_best_cc.py \
