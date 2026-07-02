@@ -51,6 +51,19 @@ All scripts are run from the repo root, e.g. `sh code/run_all.sh`.
 | `sh code/clean_all.sh` | Delete everything the runs generate, restoring the committed tree. Add `--dry-run` to preview. | instant |
 | `sh code/0000_Run_USCounty-v10.1.sh 0.0 25.1 -13.0` | Original full from-raw pipeline (also re-derives the SEM clustering). Needs the clustering deps and `ANTHROPIC_API_KEY` (for the LLM cluster-label step). | slow |
 
+**Sensitivity analyses (paper §"Sensitivity analysis on the correlation method" / Table S8; Figures S4–S6):**
+
+| Command | What it does | Time |
+|---|---|---|
+| `sh code/run_spearman.sh` | **Spearman sensitivity.** Regenerates the CC files under population-weighted **Spearman** (weighted-ECDF ranks), builds `*_spearman` tables + `figures_2745_spearman/`, then restores the Pearson primary. Needs AHRF (from-raw). | ~2.5 min |
+| `python3 code/make_spearman_comparison.py` | Build **Table S8** + `SCE_Pearson_vs_Spearman_supplement.xlsx` from the Pearson and Spearman death-CC files (run `run_all.sh` then `run_spearman.sh` first). | instant |
+| `python3 code/vintage_cc_continuous.py` | **Cross-vintage figure (Figure S6)** + stats: per-variable signed CC, 2019 vs ≤2015 and 2019 vs 2023–2024 (own-year normalized). Writes to `Supplementary_Tables_Figures/`. | instant |
+
+The correlation method is also exposed directly: `calc_metric_death_cc_v4.py` and
+`09a_compute_cc_matrix.py` take `--method {pearson,spearman}` (default `pearson`)
+and `--rank-mode {weighted,plain}`; `derive_w1.0_cc.sh spearman weighted` uses them.
+Pearson remains the primary analysis; the committed `full_w1.0/` inputs are Pearson.
+
 **Typical use:** `sh code/run_standard_k120_w1.0.sh` to build all tables and
 figures from the included derived data, then `sh code/clean_all.sh` to reset.
 

@@ -52,6 +52,7 @@ done
 # ---------------------------------------------------------------------------
 say "--- 2. prune code/ ---"
 KEEP_CODE="run_all.sh clean_all.sh run_standard_k120_w1.0.sh 0000_Run_USCounty-v10.1.sh derive_w1.0_cc.sh \
+run_spearman.sh make_spearman_comparison.py vintage_cc_continuous.py \
 AHRF_SAS7BDAT_to_CSV.v2.2_progress.py add_fips_to_ahrf.py _workbook_style.py \
 00_assemble_merged_BEN_file_v7.py normalize_extensive_metrics_v3.py \
 semantic_cluster_metrics_v2.py cluster_labels_to_superclusters.py \
@@ -93,7 +94,7 @@ done
 # 4. PRUNE repo root  -- whitelist; remove everything else at depth 1
 # ---------------------------------------------------------------------------
 say "--- 4. prune root ---"
-KEEP_ROOT="code data ward_sem_clean2_k120 full_w1.0 \
+KEEP_ROOT="code data ward_sem_clean2_k120 full_w1.0 cutoff_2015 postpandemic_2022 \
 hub_members_extensive_intensive.csv sem_sc_assignments_manual.csv \
 sem_sc_names_manual.csv embeddings_mpnet_2745.npy \
 .gitignore .gitattributes README.md LICENSE requirements.txt build_minimal_repo.sh \

@@ -47,6 +47,32 @@ from datetime import datetime
 from collections import Counter
 from scipy import stats as scipy_stats
 
+
+def weighted_rank(x, w):
+    """Population-weighted average ranks (weighted-ECDF midranks).
+
+    rank_w(x_i) = (weight strictly below x_i) + 0.5*(weight of the tie group at x_i).
+    A heavy (high-weight) observation occupies proportionally more rank space.
+    Reduces to ordinary average ranks (up to an additive constant, which does not
+    affect correlation) when all weights are equal.
+    """
+    x = np.asarray(x, dtype=np.float64)
+    w = np.asarray(w, dtype=np.float64)
+    order = np.argsort(x, kind="mergesort")
+    xs = x[order]
+    ws = w[order]
+    below = np.cumsum(ws) - ws               # weight strictly before each (sorted) position
+    is_start = np.ones(len(xs), dtype=bool)
+    is_start[1:] = xs[1:] != xs[:-1]         # first element of each tie group
+    grp = np.cumsum(is_start) - 1
+    grp_w = np.bincount(grp, weights=ws)     # total weight per tie group
+    grp_below = below[is_start]              # weight below each group's start
+    rank_sorted = grp_below[grp] + 0.5 * grp_w[grp]
+    out = np.empty(len(xs), dtype=np.float64)
+    out[order] = rank_sorted
+    return out
+
+
 def _tee(path):
     """Print 'Saved <relpath>' to stdout and stderr."""
     _p = str(path)
@@ -108,6 +134,13 @@ def parse_args():
                    help="Column used as the weight base (default: ased_bl_2019; e.g. population_2019)")
     p.add_argument("--weight-power", type=float, default=0.5,
                    help="Power to raise the weight base to (default: 0.5; 0 = unweighted)")
+    p.add_argument("--method", choices=["pearson", "spearman"], default="pearson",
+                   help="Correlation type (default: pearson). 'spearman' = weighted "
+                        "Pearson on per-pair ranks of the valid values.")
+    p.add_argument("--rank-mode", choices=["weighted", "plain"], default="weighted",
+                   help="Ranking for --method spearman (default: weighted). 'weighted' = "
+                        "population-weighted ECDF ranks (proper weighted Spearman); "
+                        "'plain' = ordinary unweighted average ranks.")
     p.add_argument("--lp-threshold", type=float, default=-5.0,
                    help="Log10(p-value) threshold for significance (default: -5.0, i.e. p < 0.00001)")
     p.add_argument("--min-ased-bl", type=float, default=0.0,
@@ -228,7 +261,7 @@ def main():
         log_message(f"  Replaced {n_inf_metrics} inf values with NaN across metric columns", 2)
 
     # ---- Compute weighted Pearson CC for each metric x each death measure ----
-    log_message(f"Computing weighted Pearson CC: {len(metric_cols)} metrics x {len(death_cols)} death measures...")
+    log_message(f"Computing weighted {args.method} CC: {len(metric_cols)} metrics x {len(death_cols)} death measures...")
     t1 = time.time()
 
     results = []        # rows for output CSV (CC values)
@@ -261,6 +294,15 @@ def main():
                 xv = x[valid]
                 yv = y[valid]
                 wv = weights[valid]
+                if args.method == "spearman":
+                    if args.rank_mode == "weighted":
+                        # proper weighted Spearman: weighted-ECDF ranks + weighted Pearson
+                        xv = weighted_rank(xv, wv)
+                        yv = weighted_rank(yv, wv)
+                    else:
+                        # plain ranks + weighted Pearson (ranking ignores weights)
+                        xv = scipy_stats.rankdata(xv)
+                        yv = scipy_stats.rankdata(yv)
                 w_sum = np.sum(wv)
                 wn = wv / w_sum
 

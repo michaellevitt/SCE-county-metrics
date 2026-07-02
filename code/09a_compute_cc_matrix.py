@@ -32,6 +32,27 @@ import time
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from scipy.stats import rankdata
+
+
+def weighted_rank(x, w):
+    """Population-weighted average ranks (weighted-ECDF midranks).
+    Reduces to ordinary average ranks (up to an additive constant) when weights
+    are equal; a heavy observation occupies proportionally more rank space."""
+    x = np.asarray(x, dtype=np.float64)
+    w = np.asarray(w, dtype=np.float64)
+    order = np.argsort(x, kind="mergesort")
+    xs = x[order]; ws = w[order]
+    below = np.cumsum(ws) - ws
+    is_start = np.ones(len(xs), dtype=bool)
+    is_start[1:] = xs[1:] != xs[:-1]
+    grp = np.cumsum(is_start) - 1
+    grp_w = np.bincount(grp, weights=ws)
+    grp_below = below[is_start]
+    rank_sorted = grp_below[grp] + 0.5 * grp_w[grp]
+    out = np.empty(len(xs), dtype=np.float64)
+    out[order] = rank_sorted
+    return out
 
 def _tee(path):
     """Print 'Saved <relpath>' to stdout and stderr."""
@@ -67,6 +88,12 @@ def main():
                         help="Minimum weight value for county inclusion")
     parser.add_argument('--power', type=float, required=True,
                         help="Exponent on weights (0 = unweighted)")
+    parser.add_argument('--method', choices=['pearson', 'spearman'], default='pearson',
+                        help="Correlation type (default: pearson). 'spearman' = weighted "
+                             "Pearson on per-column ranks.")
+    parser.add_argument('--rank-mode', choices=['weighted', 'plain'], default='weighted',
+                        help="Ranking for --method spearman (default: weighted). 'weighted' "
+                             "= population-weighted ECDF ranks (proper); 'plain' = unweighted.")
     parser.add_argument('--output', default='full_cc_matrix.csv',
                         help="Output CSV path")
     args = parser.parse_args()
@@ -126,8 +153,18 @@ def main():
                     np.sum(w_norm[:, None] * ~nan_mask, axis=0)
         data = np.where(nan_mask, col_means, data)
 
+    # ---- Spearman: rank-transform each column (then weighted Pearson on ranks) ----
+    if args.method == "spearman":
+        if args.rank_mode == "weighted":
+            log("Weighted-ECDF rank transform per column (proper weighted Spearman)...")
+            data = np.column_stack([weighted_rank(data[:, k], w_norm)
+                                    for k in range(data.shape[1])])
+        else:
+            log("Plain (unweighted) rank transform per column...")
+            data = np.apply_along_axis(rankdata, 0, data)
+
     # ---- Weighted CC matrix ----
-    log(f"Computing {n_metrics}x{n_metrics} CC matrix ({n_metrics*(n_metrics-1)//2:,} pairs)...", tee=True)
+    log(f"Computing {n_metrics}x{n_metrics} {args.method} CC matrix ({n_metrics*(n_metrics-1)//2:,} pairs)...", tee=True)
     t0 = time.time()
 
     means = np.sum(w_norm[:, None] * data, axis=0)
