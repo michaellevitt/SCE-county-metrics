@@ -45,6 +45,17 @@ data/raw/AHRF2020.fips.csv
 # step logs
 Step*.log
 /pipeline_run.log
+# Spearman sensitivity run (code/run_spearman.sh) + comparison
+/figures_2745_spearman/
+/master_sem_clusters_clean2_k120_w1.0_spearman.xlsx
+/extra_tables_clean2_k120_w1.0_spearman.xlsx
+/sem_best_lp_clean2_k120_w1.0_spearman.xlsx
+/SCE_paper_tables_consolidated_clean2_k120_w1.0_spearman.xlsx
+/spearman_results/
+/SCE_Pearson_vs_Spearman_supplement.xlsx
+# vintage figure (code/vintage_cc_continuous.py)
+/Supplementary_Tables_Figures/
+
 # files written INTO the curated input dirs at run time
 /ward_sem_clean2_k120/ward_sem_reps_w1.0.csv
 /ward_sem_clean2_k120/sem_sc_assignments.csv

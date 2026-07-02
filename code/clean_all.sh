@@ -48,6 +48,15 @@ rm_ extra_tables_clean2_k120_w1.0.xlsx
 rm_ sem_best_lp_clean2_k120_w1.0.xlsx
 rm_ SCE_paper_tables_consolidated_clean2_k120_w1.0.xlsx
 rm_ figures_2745
+
+# ---- Spearman sensitivity (run_spearman.sh / make_spearman_comparison.py) ----
+rm_ figures_2745_spearman
+rm_ spearman_results
+rm_ SCE_Pearson_vs_Spearman_supplement.xlsx
+for f in master_sem_clusters_clean2_k120_w1.0_spearman.xlsx extra_tables_clean2_k120_w1.0_spearman.xlsx \
+         sem_best_lp_clean2_k120_w1.0_spearman.xlsx SCE_paper_tables_consolidated_clean2_k120_w1.0_spearman.xlsx; do rm_ "$f"; done
+# ---- vintage figure (vintage_cc_continuous.py) ----
+rm_ Supplementary_Tables_Figures
 # files written into ward_sem_clean2_k120/ -- keep only the 7 curated inputs
 KEEP_SEM="ward_sem_metrics.csv sem100_labels.csv sc_label_embeddings.npy Z_med_sem100.npy medoid_list_sem100.json ward_sem_reps.csv README_pipeline.md"
 for p in ward_sem_clean2_k120/*; do

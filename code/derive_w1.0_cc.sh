@@ -25,6 +25,10 @@ set -e
 cd "$(dirname "$0")/.." || exit 1
 PATH=/opt/homebrew/bin:$PATH; export PATH        # need a Python with working numpy
 
+METHOD="${1:-pearson}"     # pearson (default) | spearman -- correlation type for both CC steps
+RANKMODE="${2:-weighted}"  # weighted (default, proper) | plain -- ranking for spearman
+echo ">>> correlation method: $METHOD   (spearman rank-mode: $RANKMODE)"
+
 NEW=BEN_MERGED_MEASURES_imputed_20s_v1.31.GG.Add2024.NEW.csv
 NORMED=BEN_MERGED_MEASURES_imputed_20s_v1.31.GG.Add2024.NORMED.csv
 CLASSIF=hub_members_extensive_intensive.csv
@@ -47,12 +51,14 @@ python3 code/normalize_extensive_metrics_v3.py --input "$NEW" --output "$NORMED"
 echo "--- 3. metric x death CC  (population_2019 ^ 1.0, all counties) ---"
 cat "$NORMED" | python3 code/calc_metric_death_cc_v4.py \
     --weight-col population_2019 --weight-power 1.0 --min-ased-bl 0 \
+    --method "$METHOD" --rank-mode "$RANKMODE" \
     --lp-threshold -5.0 --output "$DEATH_CC" > /tmp/derive_s06.log 2>&1
 cut -d',' -f1 "$DEATH_CC" > "$METRICS"
 
 echo "--- 4. full metric x metric CC matrix  (population_2019 ^ 1.0) ---"
 cat "$NORMED" | python3 code/09a_compute_cc_matrix.py \
     --metrics-file "$METRICS" --weight-col population_2019 --threshold 0 --power 1.0 \
+    --method "$METHOD" --rank-mode "$RANKMODE" \
     --output "$CC_MATRIX" > /tmp/derive_s10.log 2>&1
 
 echo "--- 5. XDE Ward clustering (k=100) from the own-year matrix ---"
