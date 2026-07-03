@@ -16,8 +16,17 @@ Health Resources File) and county COVID-era excess-death measures, the pipeline:
 
 ## 1. Setup (one time)
 
+> **Fresh machine? Check prerequisites first.** This block assumes **Git LFS**
+> and **Python 3.11+** are already on your PATH. If `git lfs install` fails with
+> `git: 'lfs' is not a git command`, if your `python3` is older than 3.11, or if
+> you can't use Homebrew / `sudo`, do the
+> [Troubleshooting: no-admin setup](#troubleshooting-no-admin-setup-no-homebrew--no-sudo)
+> steps **before** running this block, then return here.
+
 ```sh
-# clone WITH Git LFS — large derived files are stored in LFS (see §6)
+# clone WITH Git LFS — large derived files are stored in LFS (see §6).
+# Needs the git-lfs binary; if this errors "'lfs' is not a git command",
+# install it first — see Troubleshooting below (no Homebrew/sudo required).
 git lfs install
 git clone <repo-url>
 cd <repo>
