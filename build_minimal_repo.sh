@@ -62,7 +62,8 @@ ward_medoid_ccbs_v4.py combine_dendrogram_heatmap_v2.py plot_full_heatmap.py \
 make_master_excel_v12.py make_sig_heatmap.py make_extra_tables_v5.py \
 make_ward_best_lp_table.py make_figures.py lp_sensitivity_analysis.py \
 validate_tables.py define_superclusters_dendro.py rank_metrics_by_cluster.py \
-plot_sem120_rep_heatmap.py plot_full_cc_ordered.py make_consolidated_tables.py"
+plot_sem120_rep_heatmap.py plot_full_cc_ordered.py make_consolidated_tables.py \
+ regen_supp_tsv_s7top6_s8.py build_paper_docx.js"
 for p in code/* code/.DS_Store; do
   [ -e "$p" ] || continue
   b=$(basename "$p"); keep=0
