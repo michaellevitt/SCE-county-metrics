@@ -37,6 +37,71 @@ scipy, scikit-learn, matplotlib, openpyxl, requests) is enough for everything
 except the from-raw semantic clustering, which additionally needs
 `sentence-transformers`, `torch`, and `umap-learn`.
 
+### Troubleshooting: no-admin setup (no Homebrew / no sudo)
+
+The setup above assumes you already have **Git LFS** and a **Python 3.11+** on
+your PATH. If your machine lacks Git LFS, has only an older system Python (e.g.
+macOS `/usr/bin/python3` = 3.9), or has a conflicting Anaconda/conda install
+ahead of the system tools, the steps below install everything **locally** under
+`~/.local/bin` — no Homebrew, no `sudo`, no Xcode-license prompt. They were
+verified on a fresh macOS reproduction (2026-07-02).
+
+> **Tip:** if a `curl`-based step misbehaves, a stray Anaconda `curl` may be
+> shadowing the system one. Use `/usr/bin/curl` explicitly (as below).
+
+**1. Git LFS, locally** — run *before* `git clone`:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+GIT_LFS_TMP=$(mktemp -d)
+GIT_LFS_VERSION=$(/usr/bin/curl -fsSIL -o /dev/null -w '%{url_effective}' https://github.com/git-lfs/git-lfs/releases/latest | sed 's#.*/tag/v##')
+case "$(uname -m)" in
+  x86_64) GIT_LFS_ARCH=amd64 ;;
+  arm64)  GIT_LFS_ARCH=arm64 ;;
+  *) echo "Unsupported arch: $(uname -m)"; exit 1 ;;
+esac
+/usr/bin/curl -fL "https://github.com/git-lfs/git-lfs/releases/download/v${GIT_LFS_VERSION}/git-lfs-darwin-${GIT_LFS_ARCH}-v${GIT_LFS_VERSION}.tar.gz" -o "$GIT_LFS_TMP/git-lfs.tar.gz"
+tar -xzf "$GIT_LFS_TMP/git-lfs.tar.gz" -C "$GIT_LFS_TMP" --strip-components=1
+cp "$GIT_LFS_TMP/git-lfs" "$HOME/.local/bin/"
+export PATH="$HOME/.local/bin:$PATH"
+git lfs install
+```
+
+**2. Python 3.11 via `uv`, locally** — if your `python3` is older than 3.11:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+UV_TMP=$(mktemp -d)
+UV_VERSION=$(/usr/bin/curl -fsSIL -o /dev/null -w '%{url_effective}' https://github.com/astral-sh/uv/releases/latest | sed 's#.*/tag/##')
+case "$(uname -m)" in
+  arm64)  UV_TARGET=aarch64-apple-darwin ;;
+  x86_64) UV_TARGET=x86_64-apple-darwin ;;
+  *) echo "Unsupported arch: $(uname -m)"; exit 1 ;;
+esac
+/usr/bin/curl -fL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-${UV_TARGET}.tar.gz" -o "$UV_TMP/uv.tar.gz"
+tar -xzf "$UV_TMP/uv.tar.gz" -C "$UV_TMP" --strip-components=1
+cp "$UV_TMP/uv" "$HOME/.local/bin/"
+export PATH="$HOME/.local/bin:$PATH"
+uv python install 3.11
+uv venv --python 3.11 .venv
+. .venv/bin/activate
+```
+
+**3. Seed `pip` inside the `uv` venv** — a `uv`-created venv ships without `pip`,
+so a bare `pip` can fall through to a broken global install. Seed it first, then
+install:
+
+```sh
+python -m ensurepip --upgrade
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+(If you used the plain `python3 -m venv` from the standard setup instead, `pip`
+is already present and `pip install -r requirements.txt` works directly.)
+
+After these, continue with `sh code/run_standard_k120_w1.0.sh` as normal.
+
 ---
 
 ## 2. Running
