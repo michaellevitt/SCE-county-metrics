@@ -213,4 +213,7 @@ Remaining items are courtesies and checks rather than blockers:
 
 - `code/suppression_analysis_v1.py` — the aggregate-level analysis and the sensitivity
 - `RESULTS_v1_superseded.md` — the first version, kept for the record
-- `suppression_summary.json`, `sensitivity_table.csv`, `affected_counties.csv`
+- `suppression_summary.json`, `sensitivity_table.csv`
+- `affected_counties.csv` is written locally but is **not published**: naming the
+  counties would disclose that each holds a CDC WONDER cell in the 1 to 9 range. See
+  `README_disclosure.md`.

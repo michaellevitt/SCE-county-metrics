@@ -63,3 +63,7 @@ Step*.log
 /ward_sem_clean2_k120/metrics_by_cluster_ordered_w1.0.tsv
 /ward_sem_clean2_k120/top_metric_per_cluster*.tsv
 /ward_sem_clean2_k120/top_metric_per_cluster.csv
+
+# Discloses which counties hold a CDC WONDER cell of 1 to 9 deaths; see
+# suppression/README_disclosure.md
+suppression/affected_counties.csv

@@ -40,6 +40,7 @@ METLIST = 'ward_sem_clean2_k120/ward_sem_metrics.csv'
 ASSIGN  = 'ward_sem_clean2_k120/sem_sc_assignments.csv'
 PROD    = 'full_w1.0/metric_x_death_cc_1.0_0.csv'
 GEO     = 'data/raw/geojson-counties-fips.json'
+DEATHS  = 'data/raw/usa-county-result.10Feb26.csv'
 OUTDIR  = 'geography'
 YEARS   = list(range(2020, 2025))
 YCOLS   = [f'asedx_p_{y}' for y in YEARS]
@@ -145,6 +146,20 @@ def main():
     df['state'] = df['fips5'].str[:2].map(STATE)
     df['metro'] = np.where(df['rucc'] <= 3, 'Metropolitan', 'Non-metropolitan')
     df['xd2020_21'] = df[['asedx_p_2020', 'asedx_p_2021']].mean(axis=1)
+
+    # CDC disclosure rule: do not publish a county aggregate, or a rate computed
+    # from it, whose numerator is 9 deaths or fewer. The mapped measure pools
+    # 2020 and 2021, so the test is on the pooled count.
+    src = pd.read_csv(DEATHS, dtype={'fips': str}, low_memory=False)
+    src = src[src.age_group == 'all']
+    src['fips5'] = src['fips'].astype(str).str.zfill(5)
+    pooled = (src[src.year.astype(str).isin(['2020', '2021'])]
+              .groupby('fips5')['deaths'].sum())
+    df['deaths_2020_21'] = df['fips5'].map(pooled)
+    df['disclosable'] = df['deaths_2020_21'] > 9
+    n_sup = int((~df['disclosable']).sum())
+    print('disclosure mask: %d counties have 9 or fewer pooled 2020-2021 deaths '
+          'and are not mapped' % n_sup)
 
     # population-weighted quintiles of the advantage index
     o = np.argsort(df['advantage'].values)
@@ -266,6 +281,8 @@ def main():
     ]
     for ax, (title, col, cmap, norm, cbl) in zip(axes, panels):
         vals = df.set_index('fips5')[col]
+        if col == 'xd2020_21':
+            vals = vals.where(df.set_index('fips5')['disclosable'])
         c = vals.reindex(order).values.astype(float)
         pc = PolyCollection(verts, array=np.ma.masked_invalid(c), cmap=cmap,
                             norm=norm, edgecolors='white', linewidths=0.06)
@@ -281,10 +298,12 @@ def main():
         cb.set_label(cbl, fontsize=9.5)
         cb.ax.tick_params(labelsize=9)
         n_missing = int(np.isnan(vals.reindex(sorted(set(order))).values).sum())
-        ax.text(0.99, 0.02, 'Alaska and Hawaii are insets, not to scale.  '
-                            'Grey: not in the analysis set (%d counties).' % n_missing,
-                transform=ax.transAxes, ha='right', va='bottom',
-                fontsize=8, color='0.35')
+        note = ('Alaska and Hawaii are insets, not to scale.  '
+                'Grey: no value mapped (%d counties).' % n_missing)
+        if col == 'xd2020_21':
+            note += '\nCounties with 9 or fewer pooled deaths are withheld.'
+        ax.text(0.99, 0.02, note, transform=ax.transAxes, ha='right',
+                va='bottom', fontsize=8, color='0.35')
     fig.tight_layout()
     for ext, dpi in [('png', 300), ('pdf', None)]:
         fig.savefig(f'{OUTDIR}/figS9_county_maps.{ext}',
