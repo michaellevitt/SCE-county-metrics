@@ -1,0 +1,4 @@
+label,n_valid,gt030,gt045,max_absCC,median
+"all 3,139 counties (as published)",2727,472,77,0.5429,0.1556
+excluding 50 reconstruction-dependent counties,2727,526,121,0.5629,0.1607
+"ONLY the 50 affected counties (n=50: unstable, context only)",1403,387,149,0.6183,0.2177

@@ -1,0 +1,14 @@
+grouping,area,counties,population_m,excess_2020_21,mean_advantage,pct_in_Q1
+Census region,Northeast,217,57.6,0.196,0.33,18.2
+Census region,Midwest,1054,68.9,0.1736,0.483,1.5
+Census region,South,1422,125.5,0.202,-0.067,27.2
+Census region,West,446,78.3,0.191,0.139,25.1
+Census division,New England,67,15.1,0.1523,0.79,0.0
+Census division,Middle Atlantic,150,42.5,0.2115,0.166,24.7
+Census division,East North Central,437,47.4,0.1818,0.417,0.4
+Census division,West North Central,617,21.5,0.1557,0.629,4.0
+Census division,South Atlantic,588,65.7,0.1755,0.084,16.9
+Census division,East South Central,364,19.3,0.2104,-0.003,21.3
+Census division,West South Central,470,40.5,0.2408,-0.341,46.7
+Census division,Mountain,281,24.7,0.2013,0.201,7.2
+Census division,Pacific,165,53.6,0.1863,0.11,33.3

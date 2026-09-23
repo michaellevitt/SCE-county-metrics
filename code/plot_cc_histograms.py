@@ -27,21 +27,19 @@ _mpl.rcParams['font.family'] = 'serif'
 _mpl.rcParams['font.serif'] = ['Times New Roman', 'Palatino', 'Georgia', 'DejaVu Serif', 'serif']
 import argparse
 
-def save_fig(fig, path, dpi=200):
-    """Save figure, adding the filename as a small label in the top margin."""
+def save_fig(fig, path, dpi=200, stamp=True):
+    """Save the figure, optionally stamping the filename in the top margin.
+
+    The stamp is a working-copy provenance label. It is suppressed for a
+    figure going into the manuscript, where it would sit on the title.
+    """
     import matplotlib.pyplot as plt
-    fname = os.path.basename(path)
-    fig.text(0.5, 0.995, fname, ha='center', va='top',
-             fontsize=7, color='#888888', fontfamily='monospace',
-             transform=fig.transFigure)
-    """Save figure with filename in top margin."""
-    fname = os.path.basename(path)
-    fig.text(0.5, 0.995, fname, ha='center', va='top',
-             fontsize=7, color='#888888', fontfamily='monospace',
-             transform=fig.transFigure)
+    if stamp:
+        fname = os.path.basename(path)
+        fig.text(0.5, 0.995, fname, ha='center', va='top',
+                 fontsize=7, color='#888888', fontfamily='monospace',
+                 transform=fig.transFigure)
     fig.savefig(path, dpi=dpi, bbox_inches='tight', facecolor='white')
-    import matplotlib.pyplot as plt
-    plt.close(fig)
     plt.close(fig)
 
 
@@ -53,6 +51,10 @@ def main():
                    help="LP threshold for significance (default: -5.0)")
     p.add_argument("--include-baseline", action="store_true", default=False,
                    help="Include pre-pandemic years 2017-2019 (excluded by default)")
+    p.add_argument("--page-layout", action="store_true", default=False,
+                   help="draw at printed width with real point sizes")
+    p.add_argument("--fig-width", type=float, default=7.1,
+                   help="printed width in inches for --page-layout")
     p.add_argument("--transpose", action="store_true", default=False,
                    help="Transpose layout: columns=years, rows=age groups (default: rows=years, cols=age)")
     p.add_argument("--cc-bands", action="store_true", default=True,
@@ -110,18 +112,22 @@ def main():
 
     bins = np.arange(cc_lo, cc_hi + 0.01, 0.01)
 
+    # --page-layout draws the figure at the width it is printed at, so a point
+    # size here is a point size on the page. Reviewer 2, point 6.
+    page = getattr(args, 'page_layout', False)
     if args.transpose:
         # Rows=age groups, Cols=years
         n_rows, n_cols = n_ages, n_years
-        fig, axes = plt.subplots(n_rows, n_cols,
-                                 figsize=(4.5 * n_cols, 4.5 * n_rows),
-                                 sharey=False)
+        size = ((args.fig_width, args.fig_width * 0.52) if page
+                else (4.5 * n_cols, 4.5 * n_rows))
     else:
         # Rows=years, Cols=age groups
         n_rows, n_cols = n_years, n_ages
-        fig, axes = plt.subplots(n_rows, n_cols,
-                                 figsize=(4.5 * n_cols, 2.2 * n_rows),
-                                 sharey=False)
+        size = ((args.fig_width, args.fig_width * 0.85) if page
+                else (4.5 * n_cols, 2.2 * n_rows))
+    fs_panel, fs_axis, fs_tick, fs_sup = ((6.0, 7.5, 6.5, 6.5) if page
+                                          else (10, 16, 14, 8))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=size, sharey=False)
     fig.subplots_adjust(hspace=0.06, wspace=0.05)
     if n_rows == 1:
         axes = axes.reshape(1, -1)
@@ -167,9 +173,9 @@ def main():
                 n_very_cum = int((acc >= args.cc_strong).sum())  # |CC| > cc_strong
                 ax.text(0.97, 0.95,
                         f"{yr} {ag}\nMod>{args.cc_sig:g}={n_sig_cum}\nStrong>{args.cc_strong:g}={n_very_cum}",
-                        transform=ax.transAxes, fontsize=10, fontweight='bold',
+                        transform=ax.transAxes, fontsize=fs_panel, fontweight='bold',
                         ha='right', va='top',
-                        bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
+                        bbox=dict(boxstyle=f'round,pad={0.15 if page else 0.2}', facecolor='white', alpha=0.8))
             else:
                 sig_mask = ~np.isnan(lp_vals) & (lp_vals <= args.lp_threshold)
                 nonsig_mask = ~sig_mask
@@ -185,7 +191,7 @@ def main():
 
                 n_sig = len(cc_sig)
                 ax.text(0.97, 0.95, f"{yr} {ag}\nsig={n_sig}",
-                        transform=ax.transAxes, fontsize=10, fontweight='bold',
+                        transform=ax.transAxes, fontsize=fs_panel, fontweight='bold',
                         ha='right', va='top',
                         bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
 
@@ -199,8 +205,10 @@ def main():
                     ax.axvline(x=-xb, color='#333333', linewidth=0.5, linestyle=':', alpha=0.6)
 
             if ri == n_rows - 1:
-                ax.set_xlabel("CC", fontsize=16)
-                ax.tick_params(axis='x', labelsize=14)
+                ax.set_xlabel("CC", fontsize=fs_axis)
+                ax.tick_params(axis='x', labelsize=fs_tick)
+                if page:
+                    ax.set_xticks([-0.5, 0.0, 0.5])
                 # Remove last tick label on first 5 columns to avoid overlap
                 if ci < n_cols - 1:
                     xticks = ax.get_xticks()
@@ -210,8 +218,8 @@ def main():
             else:
                 ax.tick_params(axis='x', labelbottom=False)
             if ci == 0:
-                ax.set_ylabel("Count (log10)", fontsize=16)
-                ax.tick_params(axis='y', labelsize=14)
+                ax.set_ylabel("Count (log10)", fontsize=fs_axis)
+                ax.tick_params(axis='y', labelsize=fs_tick)
             else:
                 ax.set_yticklabels([])
                 ax.tick_params(axis='y', which='both', length=0)
@@ -222,8 +230,8 @@ def main():
                   f"strong |CC| in [{args.cc_strong:g},1]  (p-value ignored)")
     else:
         _title = f"CC distributions by death measure (bins=0.01, sig: LP <= {args.lp_threshold})"
-    fig.suptitle(_title, fontsize=8, y=1.005)
-    save_fig(fig, args.output, dpi=300)
+    fig.suptitle(_title, fontsize=fs_sup, y=1.005)
+    save_fig(fig, args.output, dpi=600 if page else 300, stamp=not page)
     print(f"Saved {os.path.basename(args.output)}  [{os.path.dirname(os.path.abspath(args.output))}]", flush=True)
     print(f"Saved {os.path.basename(args.output)}  [{os.path.dirname(os.path.abspath(args.output))}]", flush=True, file=sys.stderr)
 

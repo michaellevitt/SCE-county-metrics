@@ -24,7 +24,7 @@ Health Resources File) and county COVID-era excess-death measures, the pipeline:
 > steps **before** running this block, then return here.
 
 ```sh
-# clone WITH Git LFS — large derived files are stored in LFS (see §6).
+# clone WITH Git LFS — large derived files are stored in LFS (see §7).
 # Needs the git-lfs binary; if this errors "'lfs' is not a git command",
 # install it first — see Troubleshooting below (no Homebrew/sudo required).
 git lfs install
@@ -166,7 +166,76 @@ table numbers: `Top_metric_per_cluster_2020_2024_w1.0.tsv`,
 
 ---
 
-## 3. Outputs
+## 3. Referee-revision analyses
+
+Added for the peer review of the manuscript. Each script is self-contained, is run
+from the repo root, and writes its own output directory. All of them read the
+committed `full_w1.0/metric_x_death_cc_1.0_0.csv` and
+`ward_sem_clean2_k120/ward_sem_metrics.csv`; the ones marked "needs AHRF" also read
+`data/raw/AHRF2020.fips.csv` or the merged matrix built from it, which is not
+included (see §"AHRF data (not included)").
+
+| Command | What it answers | Output |
+|---|---|---|
+| `python3 code/permutation_null_v2.py --n-perm 10000 --seed 20260918 --strata 20` | Multiple comparisons. Permutes county labels of the whole five-year outcome block and reruns the screen. 472 observed against a null mean of 2.4, p = 0.0001; family-wise 5% critical value \|CC\| = 0.408. | `permutation_null/` + Figure S7 |
+| `python3 code/suppression_analysis_v1.py` | CDC WONDER small-count suppression: how much is withheld, how it is recovered, and a sensitivity analysis. Needs AHRF. | `suppression/` |
+| `python3 code/weighted_spearman_v1.py` | Population-weighted Spearman coefficients as weighted empirical-distribution ranks followed by a weighted Pearson. | Table S13 inputs |
+| `python3 code/revision_analyses_v1.py` | Super-cluster by data-year crosstab, the 2020-vintage sensitivity, and the cluster span of the 472 variables. Needs AHRF. | `revision_analyses/` |
+| `python3 code/silhouette_curve_v1.py` | Silhouette against k from 2 to 1000. It rises monotonically and so cannot select k, which is why the paper no longer cites it as justification. | `revision_analyses/` + Figure S8 |
+| `python3 code/imputation_sensitivity_v1.py` | The two data-handling choices: the counties with a zero baseline, and the column-mean fill of missing predictor cells, including AHRF small-count suppression. Six scenarios. Needs AHRF. | `imputation_sensitivity/` + Table S16 |
+| `python3 code/geography_and_map_v1.py` | Where the advantaged and disadvantaged counties are: an advantage index built from the 77 strongest variables, population-weighted quintiles, Census region and division, and county maps. Needs AHRF. | `geography/` + Figure S9 |
+
+The county boundaries for the maps are `data/raw/geojson-counties-fips.json`, the
+public county file keyed on 5-digit FIPS. The maps are drawn with `matplotlib`
+alone, in an Albers equal-area projection, so no geospatial packages are needed.
+
+`geography/county_advantage_index.csv`, the per-county table, is **not** committed
+because its columns are derived from AHRF at full county resolution; the script
+writes it locally. The aggregate tables are committed.
+
+**Manuscript figures at printed size.** Figures 1 and 2 were originally drawn about
+28 and 22 inches wide and then placed at 6.4 inches, which shrank every label by a
+factor of four. Both scripts now take `--page-layout`, which draws the figure at the
+width it is printed at, so a point size in the script is a point size on the page.
+The flag defaults off, so the originally submitted figures remain reproducible.
+
+```sh
+python3 code/make_sig_heatmap.py --sem-clusters ward_sem_clean2_k120/ward_sem_metrics.csv \
+    --sc-assignments ward_sem_clean2_k120/sem_sc_assignments.csv \
+    --sc-names ward_sem_clean2_k120/sem_sc_names.csv \
+    --sem100-labels ward_sem_clean2_k120/sem100_labels.csv \
+    --master-xlsx master_sem_clusters_clean2_k120_w1.0.xlsx \
+    --embeddings-cache ward_sem_clean2_k120/sc_label_embeddings.npy \
+    --min-sig-metrics 3 --min-sig-years 2 --page-layout \
+    --out /tmp/discard_flat.png --out-dendro figures_revision/fig1_page_layout.png
+
+python3 code/plot_cc_histograms.py \
+    --input full_w1.0/metric_x_death_cc_1.0_0_analysis2745.csv \
+    --output figures_revision/fig2_page_layout.png \
+    --transpose --cc-bands --cc-strong 0.45 --page-layout
+```
+
+Figure 1 cannot carry its 120 cluster labels at journal width, since 120 labels over
+3.8 inches of axis leaves 2.3 points of pitch each. The page-layout version labels
+the 11 super-clusters and the caption directs the reader to Table S3, which lists
+all 120 cluster names.
+
+`full_w1.0/metric_x_death_cc_1.0_0_analysis2745.csv` is the correlation file
+restricted to the 2,745-variable analysis set. Figure 2 uses it so that its panel
+counts match the Results; the wider `metric_x_death_cc_1.0_0.csv` holds 30 further
+rows, Census 2020 urban and rural variables, which are computed but carry no
+reported result. After a from-raw run it is rebuilt with:
+
+```sh
+python3 -c "import pandas as pd; \
+m=set(pd.read_csv('ward_sem_clean2_k120/ward_sem_metrics.csv')['metric']); \
+d=pd.read_csv('full_w1.0/metric_x_death_cc_1.0_0.csv'); \
+d[d.metric.isin(m)].to_csv('full_w1.0/metric_x_death_cc_1.0_0_analysis2745.csv', index=False)"
+```
+
+---
+
+## 4. Outputs
 
 Tables (repo root):
 
@@ -183,7 +252,7 @@ All generated outputs are listed in `.gitignore` and removed by `clean_all.sh`.
 
 ---
 
-## 4. Repository layout
+## 5. Repository layout
 
 ```
 code/                          pipeline scripts + orchestrators
@@ -196,7 +265,7 @@ code/                          pipeline scripts + orchestrators
   *.py                         the ~25 analysis steps invoked by the above
 data/
   raw/                         source files assembled by Step 01 (AHRF2020.fips.csv
-                               NOT included — supply it per §7; *.names = AHRF column dictionaries)
+                               NOT included — supply it per §8; *.names = AHRF column dictionaries)
   raw/census_pop/              county population by year + metric-year map (own-year normalization)
   BEN_..._explain_extended_2745.csv   variable descriptions
 ward_sem_clean2_k120/          CURATED 120-cluster semantic clustering (fixed input)
@@ -207,11 +276,18 @@ sem_sc_names_manual.csv                 manual super-cluster names
 embeddings_mpnet_2745.npy      cached MPNet embeddings (lets the from-raw SEM step skip re-embedding)
 requirements.txt               Python dependencies
 build_minimal_repo.sh          how this minimal tree was assembled (provenance; re-runnable)
+
+permutation_null/              referee revision: empirical null for the screen (§3)
+suppression/                   referee revision: CDC WONDER suppression and recovery
+revision_analyses/             referee revision: data-year crosstab, silhouette curve
+imputation_sensitivity/        referee revision: the two data-handling sensitivity analyses
+geography/                     referee revision: advantage index, regional tables, county maps
+figures_revision/              referee revision: Figures 1 and 2 redrawn at printed size
 ```
 
 ---
 
-## 5. Reproducibility notes
+## 6. Reproducibility notes
 
 - **`full_w1.0/` is regenerable and verified.** `derive_w1.0_cc.sh` rebuilds
   `metric_x_death_cc_1.0_0.csv` and `full_cc_ase0_p=1.0_0.csv` from raw; both
@@ -236,7 +312,7 @@ build_minimal_repo.sh          how this minimal tree was assembled (provenance; 
 
 ---
 
-## 6. Large files (Git LFS)
+## 7. Large files (Git LFS)
 
 The derived CC matrix `full_w1.0/full_cc_ase0_p=1.0_0.csv` (~54 MB) and
 `embeddings_mpnet_2745.npy` (~8 MB) are tracked with Git LFS (see
@@ -245,7 +321,7 @@ contain pointer stubs instead of the real files and the pipeline will fail.
 
 ---
 
-## 7. AHRF data (not included)
+## 8. AHRF data (not included)
 
 The largest predictor source, the **Area Health Resources File (AHRF)**, is
 **not redistributed in this repository**. The AHRF Data Use License Agreement
@@ -299,16 +375,20 @@ steps reproduces the AHRF column layout used here exactly (3,230 counties ×
 Health and Human Services, Health Resources and Services Administration, Bureau
 of Health Workforce, Rockville, MD.
 
-## 8. Other data sources
+## 9. Other data sources
 
 Ancillary predictors include CDC/ATSDR SVI, Census county poverty, urban-area
 crosswalks, and CDC vaccination summaries (all in `data/raw/`, public-domain
 sources). Excess-death measures are county-level COVID-era mortality derived by
 the authors.
 
-## 9. License
+County boundaries for the maps of §3 are `data/raw/geojson-counties-fips.json`,
+the public 5-digit-FIPS county GeoJSON derived from US Census cartographic
+boundary files.
+
+## 10. License
 
 Code and the authors' own derived outputs in this repository are released under
 the **MIT License** (see `LICENSE`). This does not extend to third-party data:
-AHRF is not included (HRSA Data Use Agreement, §7), and the bundled CDC/Census
+AHRF is not included (HRSA Data Use Agreement, §8), and the bundled CDC/Census
 source files remain under their respective public-domain / agency terms.

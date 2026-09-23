@@ -1,0 +1,34 @@
+{
+  "n_variables": 2745,
+  "n_valid_cc": 2727,
+  "n_year_2020": 11,
+  "median_data_year": 2018.0,
+  "drop2020": [
+    {
+      "analysis": "all 2,745 variables (as published)",
+      "n": 2727,
+      "gt030": 472,
+      "pct030": 17.31,
+      "gt045": 77,
+      "max_absCC": 0.5429
+    },
+    {
+      "analysis": "excluding the 11 variables dated 2020",
+      "n": 2720,
+      "gt030": 472,
+      "pct030": 17.35,
+      "gt045": 77,
+      "max_absCC": 0.5429
+    }
+  ],
+  "clusters_among_472": {
+    "n_variables": 472,
+    "n_clusters": 58,
+    "n_superclusters": 10
+  },
+  "clusters_among_77": {
+    "n_variables": 77,
+    "n_clusters": 18,
+    "n_superclusters": 4
+  }
+}

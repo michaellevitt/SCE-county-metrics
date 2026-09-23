@@ -1,0 +1,91 @@
+{
+  "cells_total": 75336,
+  "cells_zero": 121,
+  "cells_1_9": 2328,
+  "validation": [
+    {
+      "year": "2017",
+      "county_sum": 2813193,
+      "published": 2813503,
+      "diff": -310,
+      "pct": -0.011
+    },
+    {
+      "year": "2018",
+      "county_sum": 2838901,
+      "published": 2839205,
+      "diff": -304,
+      "pct": -0.0107
+    },
+    {
+      "year": "2019",
+      "county_sum": 2854570,
+      "published": 2854838,
+      "diff": -268,
+      "pct": -0.0094
+    },
+    {
+      "year": "2020",
+      "county_sum": 3383392,
+      "published": 3383729,
+      "diff": -337,
+      "pct": -0.01
+    },
+    {
+      "year": "2021",
+      "county_sum": 3463850,
+      "published": 3464231,
+      "diff": -381,
+      "pct": -0.011
+    },
+    {
+      "year": "2022",
+      "county_sum": 3279509,
+      "published": 3279857,
+      "diff": -348,
+      "pct": -0.0106
+    },
+    {
+      "year": "2023",
+      "county_sum": 3090643,
+      "published": 3090964,
+      "diff": -321,
+      "pct": -0.0104
+    },
+    {
+      "year": "2024",
+      "county_sum": 3071279,
+      "published": 3072666,
+      "diff": -1387,
+      "pct": -0.0451
+    }
+  ],
+  "counties_affected": 50,
+  "sensitivity": [
+    {
+      "label": "all 3,139 counties (as published)",
+      "n_valid": 2727,
+      "gt030": 472,
+      "gt045": 77,
+      "max_absCC": 0.5429,
+      "median": 0.1556
+    },
+    {
+      "label": "excluding 50 reconstruction-dependent counties",
+      "n_valid": 2727,
+      "gt030": 526,
+      "gt045": 121,
+      "max_absCC": 0.5629,
+      "median": 0.1607
+    },
+    {
+      "label": "ONLY the 50 affected counties (n=50: unstable, context only)",
+      "n_valid": 1403,
+      "gt030": 387,
+      "gt045": 149,
+      "max_absCC": 0.6183,
+      "median": 0.2177
+    }
+  ],
+  "weight_share_affected": 0.0001430705136386803
+}

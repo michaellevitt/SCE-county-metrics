@@ -64,6 +64,13 @@ def main():
     p.add_argument('--min-sig-years',    type=int,   default=1,
                    help='A metric counts as "sig" only if n_sig_years >= this (default 1)')
     p.add_argument('--out',              required=True,  help='output png path (flat heatmap)')
+    p.add_argument('--page-layout', action='store_true', default=False,
+                   help='draw the dendrogram figure at printed width with real '
+                        'point sizes, dropping the 120 cluster labels (which '
+                        'cannot be legible at that width)')
+    p.add_argument('--fig-width', type=float, default=7.1,
+                   help='printed figure width in inches for --page-layout '
+                        '(7.1 in = 180 mm, the Frontiers full width)')
     p.add_argument('--out-dendro',       default=None,
                    help='Optional second output PNG: dendrogram + heatmap '
                         '(ordered by Ward linkage on cosine distance).')
@@ -293,13 +300,28 @@ def _render_dendro_heatmap(sim_mat, cluster_ids, sig_clusters, sig_scs,
     #   cell_h = (top  - bottom) * fig_h
     # With ratios [0.18, 0.18, 0.50, 0.14], margins (0.02, 0.98, 0.94, 0.05),
     # cell_w == cell_h gives fig_h ≈ fig_w * 0.539.
-    fig_w = 28.0
-    fig_h = 15.5
+    # --page-layout draws the figure at the width it is actually printed at,
+    # so a point size in the script is a point size on the page. The 120
+    # cluster labels do not fit legibly at that width (120 labels over ~3.8
+    # inches is 2.3 pt of pitch each), so they are dropped and the reader is
+    # sent to Table S3 for the names. Reviewer 2, point 6.
+    page = getattr(args, 'page_layout', False)
+    if page:
+        fig_w = args.fig_width
+        fig_h = fig_w * 0.539
+        ratios = [0.01, 0.20, 0.38, 0.41]
+        fs_lbl, fs_tick, fs_title, fs_sc = 0.0, 7.0, 7.5, 8.0
+    else:
+        fig_w = 28.0
+        fig_h = 15.5
+        ratios = [0.18, 0.18, 0.50, 0.14]
+        fs_lbl, fs_tick, fs_title, fs_sc = 8.75, 9.0, 11.0, 9.0
     fig = plt.figure(figsize=(fig_w, fig_h))
     gs   = gridspec.GridSpec(
         1, 4,
-        width_ratios=[0.18, 0.18, 0.50, 0.14],
-        wspace=0.02, left=0.02, right=0.98, top=0.94, bottom=0.05,
+        width_ratios=ratios,
+        wspace=0.02, left=0.07 if page else 0.02, right=0.98,
+        top=0.94, bottom=0.05,
     )
     ax_l = fig.add_subplot(gs[0, 0])
     ax_d = fig.add_subplot(gs[0, 1])
@@ -339,8 +361,8 @@ def _render_dendro_heatmap(sim_mat, cluster_ids, sig_clusters, sig_scs,
     ax_d.invert_xaxis()
     ax_d.invert_yaxis()                   # leaf 0 at top
     ax_d.set_xlabel('Cosine distance (1 - similarity)  [Ward linkage, symlog]',
-                    fontsize=11)
-    ax_d.tick_params(axis='x', labelsize=9)
+                    fontsize=fs_title)
+    ax_d.tick_params(axis='x', labelsize=fs_tick)
     ax_d.set_yticks([])
     for spine in ('top', 'right'):
         ax_d.spines[spine].set_visible(False)
@@ -358,7 +380,7 @@ def _render_dendro_heatmap(sim_mat, cluster_ids, sig_clusters, sig_scs,
         f'red = >= {K_min} variable(s) with |CC|>{args.cc_sig:g} in >= {Y_min} all-ages year(s)\n'
         f'Rows/cols ordered by Ward linkage on cosine distance  '
         f'|  black lines = super-cluster boundaries (dendrogram cut, K={len(set(leaf_sc))})',
-        fontsize=11, fontweight='bold', pad=8)
+        fontsize=fs_title, fontweight='bold', pad=8)
 
     # ---- Align dendrogram leaves with heatmap rows ----
     # scipy puts leaves at y = 5, 15, ..., 10n-5  (after invert: same set, top-down)
@@ -371,13 +393,15 @@ def _render_dendro_heatmap(sim_mat, cluster_ids, sig_clusters, sig_scs,
     ax_l.set_ylim(n - 0.5, -0.5)
 
     # ---- Cluster labels on far left (right-aligned, flush against dendrogram) ----
-    for i, (lbl, col) in enumerate(zip(leaf_lbl, leaf_color)):
-        ax_l.text(0.99, i, lbl, ha='right', va='center',
-                  fontsize=8.75, fontweight='bold', color=col,
-                  transform=ax_l.transData)
+    if fs_lbl > 0:
+        for i, (lbl, col) in enumerate(zip(leaf_lbl, leaf_color)):
+            ax_l.text(0.99, i, lbl, ha='right', va='center',
+                      fontsize=fs_lbl, fontweight='bold', color=col,
+                      transform=ax_l.transData)
     # ---- Super-cluster separator lines across the left label column ----
-    for b in boundaries:
-        ax_l.axhline(b - 0.5, color='#555555', lw=1.0)
+    if fs_lbl > 0:
+        for b in boundaries:
+            ax_l.axhline(b - 0.5, color='#555555', lw=1.0)
 
     # ---- SC labels on far right, anchored to centre of each contiguous run ----
     fig.canvas.draw()
@@ -390,9 +414,10 @@ def _render_dendro_heatmap(sim_mat, cluster_ids, sig_clusters, sig_scs,
         fig.text(sc_x_fig, fy,
                  f'SC{int(sc_id):02d}: {sc_name_map.get(int(sc_id), "")}',
                  va='center', ha='left',
-                 fontsize=9, fontweight='bold', color=col)
+                 fontsize=fs_sc, fontweight='bold', color=col)
 
-    fig.savefig(args.out_dendro, dpi=150, bbox_inches='tight', facecolor='white')
+    fig.savefig(args.out_dendro, dpi=600 if page else 150,
+                bbox_inches='tight', facecolor='white')
     plt.close(fig)
     _tee(args.out_dendro)
 

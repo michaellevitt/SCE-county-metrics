@@ -1,0 +1,58 @@
+[
+  {
+    "label": "production",
+    "n_valid": 2727,
+    "n_gt_030": 472,
+    "n_gt_045": 77,
+    "max_abs": 0.5429,
+    "median_max": 0.1556
+  },
+  {
+    "label": "zero-baseline counties dropped",
+    "n_valid": 2727,
+    "n_gt_030": 520,
+    "n_gt_045": 117,
+    "max_abs": 0.561,
+    "median_max": 0.1568
+  },
+  {
+    "label": "suppressed cells set to 0",
+    "n_valid": 2727,
+    "n_gt_030": 481,
+    "n_gt_045": 79,
+    "max_abs": 0.5429,
+    "median_max": 0.1591
+  },
+  {
+    "label": "suppressed cells set to 9",
+    "n_valid": 2727,
+    "n_gt_030": 484,
+    "n_gt_045": 79,
+    "max_abs": 0.5429,
+    "median_max": 0.1599
+  },
+  {
+    "label": "suppressed cells left missing",
+    "n_valid": 2727,
+    "n_gt_030": 495,
+    "n_gt_045": 83,
+    "max_abs": 0.5938,
+    "median_max": 0.16
+  },
+  {
+    "label": "complete variables only",
+    "n_valid": 2156,
+    "n_gt_030": 306,
+    "n_gt_045": 21,
+    "max_abs": 0.5429,
+    "median_max": 0.1484
+  },
+  {
+    "label": "counties dropped and suppression left missing",
+    "n_valid": 2727,
+    "n_gt_030": 541,
+    "n_gt_045": 121,
+    "max_abs": 0.5938,
+    "median_max": 0.1624
+  }
+]
