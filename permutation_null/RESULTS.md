@@ -27,11 +27,20 @@ inflated by treating the years as independent draws. Predictors and weights stay
 their county row.
 
 The **primary null is stratified**: an outcome may move only to a county in the same
-2019-population stratum (20 equal-count strata). Unrestricted permutation breaks a real
-structural feature of the data, which is that small counties have volatile excess-death
-rates because their denominators are small. It therefore manufactures large excess-death
-values sitting on large-population counties, a combination that never occurs in the real
-data, and inflates the null. Two unstratified nulls are reported as sensitivity.
+2019-population stratum (20 equal-count strata). The reason is counting noise. The
+excess-death ratio of a very small county rests on a handful of deaths: below 5,000 people
+its standard deviation is 0.36, three times the 0.12 of counties above 10,000, and above
+10,000 it barely depends on size. Unrestricted permutation moves that noise onto the large
+counties that carry most of the weight, 80% of it in counties above 100,000, and inflates
+the null. Large counties do reach high values legitimately, the Bronx at 0.65 in 2020, but
+not through noise. Two unstratified nulls are reported as sensitivity.
+
+The number of strata is itself a choice. With 3,000 permutations at each setting, the
+family-wise critical value is 0.388 at 10 strata, 0.409 at 20, 0.441 at 40, 0.477 at 100,
+0.491 at 300 and 0.537 unrestricted. It is lowest near 10 to 20, because too few strata
+leave the noise in place and too many absorb real association into the null. The count of
+472 is far outside every one of these nulls; the claim that all 77 strong-band variables
+clear family-wise correction holds at 20 strata but not unrestricted.
 
 ## Results
 
