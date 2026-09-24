@@ -233,6 +233,48 @@ d=pd.read_csv('full_w1.0/metric_x_death_cc_1.0_0.csv'); \
 d[d.metric.isin(m)].to_csv('full_w1.0/metric_x_death_cc_1.0_0_analysis2745.csv', index=False)"
 ```
 
+**County exclusions (revision of 24 September 2026).** The revised analysis omits
+two groups of counties, leaving 2,770 counties that hold 98.5% of the population:
+
+1. every county with fewer than 10 deaths in any age group used (all ages, under 65,
+   65 and over) in any year from 2017 to 2024, 361 counties holding 0.38% of the
+   population, among them the two with no baseline deaths (Kalawao, Hawaii and
+   Loving, Texas);
+2. the eight Connecticut counties, whose population estimates follow the new planning
+   regions from 2020 while their deaths still follow the old counties.
+
+`code/exclusion_rules_v1.py` applies both rules to the normalized matrix. It writes
+the list of omitted counties locally only (`logs/excluded_fips_DO_NOT_PUBLISH.txt`,
+ignored by git), because naming the counties omitted under rule 1 would disclose that
+each holds a cell of nine or fewer deaths. The rerun:
+
+```sh
+sh code/derive_w1.0_cc.sh
+python3 code/exclusion_rules_v1.py \
+    --in  BEN_MERGED_MEASURES_imputed_20s_v1.31.GG.Add2024.NORMED.csv \
+    --out BEN_MERGED_MEASURES_imputed_20s_v1.31.GG.Add2024.NORMED.csv
+sh code/derive_excl.sh pearson
+sh code/derive_excl.sh spearman
+sh code/run_standard_k120_w1.0.sh
+python3 code/paper_numbers.py --cc full_w1.0/metric_x_death_cc_1.0_0.csv --out logs/numbers.json
+python3 code/paper_numbers2.py --out logs/numbers2.json
+python3 code/permutation_null_v2.py --n-perm 10000 --seed 20260918 --strata 20 \
+    --out-prefix permutation_null/perm_null_strat20
+python3 code/permutation_null_v2.py --n-perm 10000 --seed 20260918 \
+    --out-prefix permutation_null/perm_null
+python3 code/plot_permutation_null_v1.py
+python3 code/geography_and_map_v1.py
+python3 code/imputation_sensitivity_v1.py
+```
+
+`code/paper_numbers.py` and `code/paper_numbers2.py` compute every correlation-derived
+number the manuscript reports (headline counts, Table 1, Tables S7, S8, S10 and S13)
+from the definitions in the captions; run on the originally submitted 3,139-county
+analysis they reproduce its numbers exactly. `code/plot_permutation_null_v1.py`
+draws Figure S7, which was previously drawn ad hoc. The result files committed
+elsewhere in this repository are still those of the originally submitted
+3,139-county analysis.
+
 ---
 
 ## 4. Outputs

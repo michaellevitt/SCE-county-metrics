@@ -127,6 +127,25 @@ def summary(CC, label, valid=None):
     return d
 
 
+def kalawao_report(k, w, X, FILLED):
+    wn = w / w.sum()
+    mu = np.nansum(wn[:, None] * X, axis=0)
+    con = wn[:, None] * (X - mu) ** 2
+    tot = np.nansum(con, axis=0)
+    shk = con[k] / np.where(tot > 0, tot, np.nan)
+    with np.errstate(all='ignore'):
+        holds_max = X[k] >= np.nanmax(X, axis=0) - 1e-9
+    kf = FILLED[k]
+    print('\nKalawao County (85 residents)')
+    print('  variables where its cell was filled in              : %d' % kf.sum())
+    print('  variables where it holds the maximum                : %d, of which filled in %d'
+          % (holds_max.sum(), (holds_max & kf).sum()))
+    print('  variables where it supplies >50%% of weighted variance: %d, of which filled in %d'
+          % ((shk > 0.5).sum(), ((shk > 0.5) & kf).sum()))
+    print('  variables where it supplies >90%% of weighted variance: %d, of which filled in %d'
+          % ((shk > 0.9).sum(), ((shk > 0.9) & kf).sum()))
+
+
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
     mets = list(pd.read_csv(METLIST)['metric'])
@@ -217,23 +236,9 @@ def main():
                            'complete variables only'))
 
     # ---------------- Kalawao: through which cells does it act? ----------------
-    k = int(np.flatnonzero(fips == KALAWAO)[0])
-    wn = w / w.sum()
-    mu = np.nansum(wn[:, None] * X, axis=0)
-    con = wn[:, None] * (X - mu) ** 2
-    tot = np.nansum(con, axis=0)
-    shk = con[k] / np.where(tot > 0, tot, np.nan)
-    with np.errstate(all='ignore'):
-        holds_max = X[k] >= np.nanmax(X, axis=0) - 1e-9
-    kf = FILLED[k]
-    print('\nKalawao County (85 residents)')
-    print('  variables where its cell was filled in              : %d' % kf.sum())
-    print('  variables where it holds the maximum                : %d, of which filled in %d'
-          % (holds_max.sum(), (holds_max & kf).sum()))
-    print('  variables where it supplies >50%% of weighted variance: %d, of which filled in %d'
-          % ((shk > 0.5).sum(), ((shk > 0.5) & kf).sum()))
-    print('  variables where it supplies >90%% of weighted variance: %d, of which filled in %d'
-          % ((shk > 0.9).sum(), ((shk > 0.9) & kf).sum()))
+    # skipped when Kalawao is not in the matrix (the minimum-count exclusion)
+    for k in np.flatnonzero(fips == KALAWAO)[:1]:
+        kalawao_report(k, w, X, FILLED)
 
     # ---------------- does any reported result rest on a filled cell? -------
     print('\nimputation load among the variables that reach each threshold')

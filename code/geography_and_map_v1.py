@@ -284,7 +284,9 @@ def main():
         if col == 'xd2020_21':
             vals = vals.where(df.set_index('fips5')['disclosable'])
         c = vals.reindex(order).values.astype(float)
-        pc = PolyCollection(verts, array=np.ma.masked_invalid(c), cmap=cmap,
+        cm = plt.get_cmap(cmap).copy()
+        cm.set_bad('0.82')                       # counties with no value, grey
+        pc = PolyCollection(verts, array=np.ma.masked_invalid(c), cmap=cm,
                             norm=norm, edgecolors='white', linewidths=0.06)
         pc.set_clim(norm.vmin, norm.vmax)
         ax.add_collection(pc)
@@ -300,7 +302,7 @@ def main():
         n_missing = int(np.isnan(vals.reindex(sorted(set(order))).values).sum())
         note = ('Alaska and Hawaii are insets, not to scale.  '
                 'Grey: no value mapped (%d counties).' % n_missing)
-        if col == 'xd2020_21':
+        if col == 'xd2020_21' and n_sup:
             note += '\nCounties with 9 or fewer pooled deaths are withheld.'
         ax.text(0.99, 0.02, note, transform=ax.transAxes, ha='right',
                 va='bottom', fontsize=8, color='0.35')

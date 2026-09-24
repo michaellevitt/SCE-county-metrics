@@ -17,7 +17,8 @@ Usage:
     --out-ordered ward_sem_clean2_k120/metrics_by_cluster_ordered_w1.0.tsv \
     --out-top     ward_sem_clean2_k120/top_metric_per_cluster_2020_2024_w1.0.tsv
 """
-import argparse, numpy as np, pandas as pd
+import argparse
+import re, numpy as np, pandas as pd
 
 def main():
     ap = argparse.ArgumentParser()
@@ -53,7 +54,9 @@ def main():
 
     m = pd.read_csv(a.sem_metrics)[['metric', 'explain', 'semantic_cluster_id', 'centroid_distance']]
     m = m.rename(columns={'semantic_cluster_id': 'cluster'})
-    m['explain'] = m['explain'].map(lambda s: str(s).split('=')[0].strip())
+    # strip only the trailing data-year suffix (=2018, =2014-18); names such as
+    # Persons_<65_<=_400%_of_Poverty contain '=' themselves
+    m['explain'] = m['explain'].map(lambda s: re.sub(r'=(\d{4}(-\d{2})?|NA)$', '', str(s)).strip())
     m['centroid_distance'] = m['centroid_distance'].round(4)
     lab = pd.read_csv(a.sem100_labels)[['cluster_id', 'label_proposed']].rename(
         columns={'cluster_id': 'cluster', 'label_proposed': 'cluster_label'})

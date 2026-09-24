@@ -67,3 +67,13 @@ Step*.log
 # Discloses which counties hold a CDC WONDER cell of 1 to 9 deaths; see
 # suppression/README_disclosure.md
 suppression/affected_counties.csv
+
+# The list of counties omitted by the minimum-count rule discloses the same
+# thing (code/exclusion_rules_v1.py writes it locally only)
+*DO_NOT_PUBLISH*
+/logs/
+
+# County-exclusion reruns (code/derive_excl.sh, code/paper_numbers*.py)
+/excl/
+/NORMED_full_ALL_COUNTIES.csv
+/figs_new/
