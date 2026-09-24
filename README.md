@@ -182,7 +182,7 @@ included (see §"AHRF data (not included)").
 | `python3 code/weighted_spearman_v1.py` | Population-weighted Spearman coefficients as weighted empirical-distribution ranks followed by a weighted Pearson. | Table S13 inputs |
 | `python3 code/revision_analyses_v1.py` | Super-cluster by data-year crosstab, the 2020-vintage sensitivity, and the cluster span of the 472 variables. Needs AHRF. | `revision_analyses/` |
 | `python3 code/silhouette_curve_v1.py` | Silhouette against k from 2 to 1000. It rises monotonically and so cannot select k, which is why the paper no longer cites it as justification. | `revision_analyses/` + Figure S8 |
-| `python3 code/imputation_sensitivity_v1.py` | The two data-handling choices: the counties with a zero baseline, and the column-mean fill of missing predictor cells, including AHRF small-count suppression. Six scenarios. Needs AHRF. | `imputation_sensitivity/` + Table S16 |
+| `python3 code/imputation_sensitivity_v1.py` | The two data-handling choices: the counties with a zero baseline, and the column-mean fill of missing predictor cells. The decisive scenario leaves every filled-in cell missing, with a 90% population-coverage rule: 535 variables above 0.30 rather than 472, because a filled-in count divided by the 85 residents of Kalawao County, Hawaii had been suppressing 92 variables. Needs AHRF. | `imputation_sensitivity/` + Table S16 |
 | `python3 code/geography_and_map_v1.py` | Where the advantaged and disadvantaged counties are: an advantage index built from the 77 strongest variables, population-weighted quintiles, Census region and division, and county maps. Needs AHRF. | `geography/` + Figure S9 |
 
 The county boundaries for the maps are `data/raw/geojson-counties-fips.json`, the

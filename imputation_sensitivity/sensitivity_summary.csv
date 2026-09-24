@@ -3,6 +3,6 @@ production,2727,472,77,0.5429,0.1556
 zero-baseline counties dropped,2727,520,117,0.561,0.1568
 suppressed cells set to 0,2727,481,79,0.5429,0.1591
 suppressed cells set to 9,2727,484,79,0.5429,0.1599
-suppressed cells left missing,2727,495,83,0.5938,0.16
+all filled-in cells left missing,2650,535,121,0.5607,0.1664
+"all filled cells missing, Kalawao and Loving dropped",2650,536,121,0.561,0.1665
 complete variables only,2156,306,21,0.5429,0.1484
-counties dropped and suppression left missing,2727,541,121,0.5938,0.1624

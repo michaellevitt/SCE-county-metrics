@@ -32,12 +32,20 @@
     "median_max": 0.1599
   },
   {
-    "label": "suppressed cells left missing",
-    "n_valid": 2727,
-    "n_gt_030": 495,
-    "n_gt_045": 83,
-    "max_abs": 0.5938,
-    "median_max": 0.16
+    "label": "all filled-in cells left missing",
+    "n_valid": 2650,
+    "n_gt_030": 535,
+    "n_gt_045": 121,
+    "max_abs": 0.5607,
+    "median_max": 0.1664
+  },
+  {
+    "label": "all filled cells missing, Kalawao and Loving dropped",
+    "n_valid": 2650,
+    "n_gt_030": 536,
+    "n_gt_045": 121,
+    "max_abs": 0.561,
+    "median_max": 0.1665
   },
   {
     "label": "complete variables only",
@@ -46,13 +54,5 @@
     "n_gt_045": 21,
     "max_abs": 0.5429,
     "median_max": 0.1484
-  },
-  {
-    "label": "counties dropped and suppression left missing",
-    "n_valid": 2727,
-    "n_gt_030": 541,
-    "n_gt_045": 121,
-    "max_abs": 0.5938,
-    "median_max": 0.1624
   }
 ]

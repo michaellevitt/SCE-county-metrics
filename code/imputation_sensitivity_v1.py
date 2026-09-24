@@ -22,6 +22,16 @@ Defect 2, the predictors.
   Test: restore the suppressed cells to the ends of their true range, 0 and 9,
   and recompute. Also recompute using only the variables with no filled cell.
 
+The decisive test, added 23 September 2026: leave every filled-in cell missing.
+  The fill matters less through heavily filled variables than through single
+  filled cells in very small counties. Where Kalawao's value for a count
+  variable was blank, the fill supplied the mean county count, and division by
+  its 85 residents made that hundreds of times the largest real county. Such a
+  value can supply over 90% of a variable's weighted variance. Variables whose
+  real data cover less than COVERAGE of the population are set aside in this
+  test, since otherwise a variable seen in four counties is correlated on four
+  points.
+
 Weighted Pearson machinery is taken from code/permutation_null_v2.py, which
 reproduces code/calc_metric_death_cc_v4.py to 5e-7.
 
@@ -44,6 +54,11 @@ YCOLS   = [f'asedx_p_{y}' for y in YEARS]
 WCOL    = 'population_2019'
 MOD, STRONG = 0.30, 0.45
 ZERO_BASELINE = ['15005', '48301']          # Kalawao HI, Loving TX
+KALAWAO = '15005'
+# When filled-in cells are left missing, a variable with real data for only a
+# handful of counties is correlated on a handful of points and can reach 1.000.
+# Such variables are set aside: real data must cover this share of the weight.
+COVERAGE = 0.90
 
 
 def cc_block(X, Yp, w):
@@ -97,8 +112,12 @@ def cc_block(X, Yp, w):
     return out
 
 
-def summary(CC, label):
-    m = np.nanmax(np.abs(CC), axis=1)
+def summary(CC, label, valid=None):
+    with np.errstate(all='ignore'):
+        ab = np.abs(CC)
+        m = np.nanmax(np.where(np.isfinite(ab), ab, np.nan), axis=1)
+    if valid is not None:
+        m = np.where(valid, m, np.nan)
     m = m[np.isfinite(m)]
     d = dict(label=label, n_valid=int(m.size), n_gt_030=int((m > MOD).sum()),
              n_gt_045=int((m > STRONG).sum()), max_abs=round(float(m.max()), 4),
@@ -164,10 +183,9 @@ def main():
     results.append(summary(cc_block(X[keep], Y[keep], w[keep]),
                            'zero-baseline counties dropped'))
 
-    # ---------------- 2. suppressed predictor cells restored ----------------
+    # ---------------- 2. suppressed predictor cells set to either end ----------
     for val, name in [(0.0, 'suppressed cells set to 0'),
-                      (9.0, 'suppressed cells set to 9'),
-                      (np.nan, 'suppressed cells left missing')]:
+                      (9.0, 'suppressed cells set to 9')]:
         print('\n2. %s' % name)
         Xs = X.copy()
         mask = FILLED & suppressed_var[None, :]
@@ -175,19 +193,47 @@ def main():
         print('  cells changed: %d in %d variables' % (mask.sum(), suppressed_var.sum()))
         results.append(summary(cc_block(Xs, Y, w), name))
 
-    # ---------------- 3. only variables with no filled cell ----------------
-    print('\n3. restricted to variables with no filled cell')
+    # ---------------- 3. every filled-in cell left missing ----------------
+    # This is the decisive test of the mean fill. Leaving only the suppression
+    # variables missing, as an earlier version did, misses the cells that matter:
+    # single filled cells in very small counties, where a filled-in count divided
+    # by a tiny population gives an extreme per-capita value.
+    covered = ((~FILLED) * w[:, None]).sum(axis=0) / w.sum() >= COVERAGE
+    print('\n3. every filled-in cell left missing; variables need real data for '
+          '%.0f%% of the weight: %d of %d kept' % (100 * COVERAGE, covered.sum(), len(mets)))
+    Xm = X.copy()
+    Xm[FILLED] = np.nan
+    results.append(summary(cc_block(Xm, Y, w), 'all filled-in cells left missing',
+                           valid=covered))
+    results.append(summary(cc_block(Xm[keep], Y[keep], w[keep]),
+                           'all filled cells missing, Kalawao and Loving dropped',
+                           valid=covered))
+
+    # ---------------- 4. only variables with no filled cell ----------------
+    print('\n4. restricted to variables with no filled cell')
     novar = per_var == 0
     print('  variables kept: %d of %d' % (novar.sum(), len(mets)))
     results.append(summary(cc_block(X[:, novar], Y, w),
                            'complete variables only'))
 
-    # ---------------- 4. both defects corrected together ----------------
-    print('\n4. both corrections together')
-    Xs = X.copy()
-    Xs[FILLED & suppressed_var[None, :]] = np.nan
-    results.append(summary(cc_block(Xs[keep], Y[keep], w[keep]),
-                           'counties dropped and suppression left missing'))
+    # ---------------- Kalawao: through which cells does it act? ----------------
+    k = int(np.flatnonzero(fips == KALAWAO)[0])
+    wn = w / w.sum()
+    mu = np.nansum(wn[:, None] * X, axis=0)
+    con = wn[:, None] * (X - mu) ** 2
+    tot = np.nansum(con, axis=0)
+    shk = con[k] / np.where(tot > 0, tot, np.nan)
+    with np.errstate(all='ignore'):
+        holds_max = X[k] >= np.nanmax(X, axis=0) - 1e-9
+    kf = FILLED[k]
+    print('\nKalawao County (85 residents)')
+    print('  variables where its cell was filled in              : %d' % kf.sum())
+    print('  variables where it holds the maximum                : %d, of which filled in %d'
+          % (holds_max.sum(), (holds_max & kf).sum()))
+    print('  variables where it supplies >50%% of weighted variance: %d, of which filled in %d'
+          % ((shk > 0.5).sum(), ((shk > 0.5) & kf).sum()))
+    print('  variables where it supplies >90%% of weighted variance: %d, of which filled in %d'
+          % ((shk > 0.9).sum(), ((shk > 0.9) & kf).sum()))
 
     # ---------------- does any reported result rest on a filled cell? -------
     print('\nimputation load among the variables that reach each threshold')
