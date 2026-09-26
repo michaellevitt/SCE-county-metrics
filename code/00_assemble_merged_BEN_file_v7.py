@@ -372,6 +372,8 @@ def main():
     # ----------------------------------------------------------
     # 1. Load and pivot primary file
     # ----------------------------------------------------------
+    if not os.path.isfile(PRIMARY_FILE):
+        sys.exit('The county mortality extract {path} is not in this repository: CDC WONDER rules forbid publishing counts of 1 to 9 deaths. Regenerate it with the Mortality.Watch county pipeline (commit aabee352cc505548fdf9b167884db01eb5d4681f) and place it at that path. See README, "County mortality extract".'.format(path=PRIMARY_FILE))
     primary_raw = load_csv_robust(PRIMARY_FILE, "Primary (usa-county-result)")
     if primary_raw is None:
         print("FATAL: Cannot load primary file. Exiting.")

@@ -15,6 +15,8 @@ upstream code.
 Outputs counts, the affected county list, and a re-run of the whole 2,745-variable
 screen with reconstruction-dependent counties removed.
 """
+import sys
+import os
 import json
 import numpy as np
 import pandas as pd
@@ -60,6 +62,8 @@ def summarise(CC, label):
 
 def main():
     # ---------- 1. how much was suppressed ----------
+    if not os.path.isfile(SRC):
+        sys.exit('The county mortality extract {path} is not in this repository: CDC WONDER rules forbid publishing counts of 1 to 9 deaths. Regenerate it with the Mortality.Watch county pipeline (commit aabee352cc505548fdf9b167884db01eb5d4681f) and place it at that path. See README, "County mortality extract".'.format(path=SRC))
     d = pd.read_csv(SRC, dtype={'fips': str, 'year': str})
     d['deaths'] = pd.to_numeric(d.deaths, errors='coerce')
     single = d[d.year.isin([str(y) for y in range(2017, 2025)])]

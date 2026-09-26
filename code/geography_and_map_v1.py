@@ -24,6 +24,7 @@ equal-area projection, so no geospatial packages are needed.
 Usage:
     python3 code/geography_and_map_v1.py
 """
+import sys
 import json
 import os
 
@@ -150,6 +151,8 @@ def main():
     # CDC disclosure rule: do not publish a county aggregate, or a rate computed
     # from it, whose numerator is 9 deaths or fewer. The mapped measure pools
     # 2020 and 2021, so the test is on the pooled count.
+    if not os.path.isfile(DEATHS):
+        sys.exit('The county mortality extract {path} is not in this repository: CDC WONDER rules forbid publishing counts of 1 to 9 deaths. Regenerate it with the Mortality.Watch county pipeline (commit aabee352cc505548fdf9b167884db01eb5d4681f) and place it at that path. See README, "County mortality extract".'.format(path=DEATHS))
     src = pd.read_csv(DEATHS, dtype={'fips': str}, low_memory=False)
     src = src[src.age_group == 'all']
     src['fips5'] = src['fips'].astype(str).str.zfill(5)

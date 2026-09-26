@@ -26,6 +26,8 @@ because the 0-9,999 rescaling is linear and a correlation is unaffected by it.
 Usage:
     python3 code/exclusion_rules_v1.py --in NORMED.csv --out NORMED_excl.csv
 """
+import sys
+import os
 import argparse
 
 import pandas as pd
@@ -38,6 +40,8 @@ CONNECTICUT = '09'
 
 
 def excluded():
+    if not os.path.isfile(EXTRACT):
+        sys.exit('The county mortality extract {path} is not in this repository: CDC WONDER rules forbid publishing counts of 1 to 9 deaths. Regenerate it with the Mortality.Watch county pipeline (commit aabee352cc505548fdf9b167884db01eb5d4681f) and place it at that path. See README, "County mortality extract".'.format(path=EXTRACT))
     r = pd.read_csv(EXTRACT, dtype={'fips': str}, low_memory=False)
     r['f'] = r['fips'].str.zfill(5)
     r = r[r['year'].astype(str).isin([str(y) for y in YEARS]) & r['age_group'].isin(AGES)]

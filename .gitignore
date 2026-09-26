@@ -77,3 +77,11 @@ suppression/affected_counties.csv
 /excl/
 /NORMED_full_ALL_COUNTIES.csv
 /figs_new/
+
+# County death data derived from CDC WONDER: CDC rules forbid publishing counts of
+# 1 to 9 deaths or rates based on them. Kept local only; see README, "County
+# mortality extract". Removed from the whole history on 25 September 2026.
+data/raw/usa-county-result.10Feb26.csv
+data/raw/county_causes_pivoted.csv
+data/raw/fips_US_Counties_Dy20_Dy21_Dy22_Dy23_Dyal_PHT.fix.MOD.csv
+geography/figS9_county_maps.png

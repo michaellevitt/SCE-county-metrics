@@ -421,8 +421,28 @@ of Health Workforce, Rockville, MD.
 
 Ancillary predictors include CDC/ATSDR SVI, Census county poverty, urban-area
 crosswalks, and CDC vaccination summaries (all in `data/raw/`, public-domain
-sources). Excess-death measures are county-level COVID-era mortality derived by
-the authors.
+sources).
+
+### County mortality extract (not included)
+
+The outcome is computed from a county death and population extract,
+`data/raw/usa-county-result.10Feb26.csv`, which is **not in this repository**. It is
+derived from CDC WONDER underlying-cause-of-death data, and the CDC WONDER data-use
+restrictions forbid publishing sub-national counts of 1 to 9 deaths, or rates based on
+them. Many small counties have such counts, so the file cannot be released, and no
+trimmed version is released either, because published state totals would let the
+omitted counties be recovered by subtraction.
+
+The extract was produced with the Mortality.Watch county pipeline at commit
+`aabee352cc505548fdf9b167884db01eb5d4681f` (9 February 2026), which regenerates it from
+CDC WONDER queries anyone can run. Place the result at the path above. The four scripts
+that read it (`code/00_assemble_merged_BEN_file_v7.py`, `code/exclusion_rules_v1.py`,
+`code/suppression_analysis_v1.py`, `code/geography_and_map_v1.py`) stop with a message
+if it is missing. Everything downstream of the correlations (tables, figures,
+permutation null) runs from the committed results without it.
+
+Earlier versions of this repository included the extract and two unused county
+death files. They were removed from the whole history on 25 September 2026.
 
 County boundaries for the maps of §3 are `data/raw/geojson-counties-fips.json`,
 the public 5-digit-FIPS county GeoJSON derived from US Census cartographic
